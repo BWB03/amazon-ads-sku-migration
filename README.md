@@ -1,6 +1,6 @@
-# Amazon Ads SKU Migration Tool
+# Amazon Ads SKU Migration Tools
 
-Bulk migrate SKUs across your Amazon Advertising campaigns when transitioning from Amazon sticker barcodes to manufacturer barcodes.
+Tools for bulk-managing SKUs across Amazon Advertising campaigns.
 
 ## The Problem
 
@@ -116,6 +116,52 @@ The script automatically skips:
 - **SP vs SD column differences**: Sponsored Display uses column F for Ad Group ID (not E like SP) and column P for State (not R). The script handles this automatically.
 - **This only creates new ads** - it never modifies or deletes existing ones. Your current ads remain untouched.
 - **Don't include your bulk download in version control** - it contains campaign IDs and performance data. The `.gitignore` excludes `.xlsx` files by default.
+
+---
+
+## Script 2: Add SKU to Existing Ad Groups
+
+Sometimes you need to add a specific SKU to campaigns where related SKUs already exist — for example, when a SKU is tied to a running deal and can't be deleted, but needs to be included in all relevant campaigns.
+
+### What It Does
+
+1. Searches your bulk download for ad groups containing specified SKUs
+2. Generates upload-ready rows to add a new SKU to those same ad groups
+3. Skips ad groups where the new SKU already exists (safe to re-run)
+
+### Usage
+
+```bash
+python add_sku_to_adgroups.py <bulk_file.xlsx> [options]
+```
+
+### Options
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--search-skus` | SKUs to search for (space-separated) | *(none — must provide)* |
+| `--add-sku` | SKU to add to matched ad groups | *(none — must provide)* |
+| `--test-campaign` | Campaign ID for the test file | Auto-selects smallest |
+| `--output-dir` | Where to save output files | Same as source file |
+| `--full-only` | Skip generating the test file | Off |
+
+### Example
+
+```bash
+# Find all ad groups containing OLD-SKU-1 or OLD-SKU-2, add NEW-SKU to each
+python add_sku_to_adgroups.py bulk.xlsx --search-skus "OLD-SKU-1" "OLD-SKU-2" --add-sku "NEW-SKU"
+```
+
+Outputs:
+- `Add_SKU_FULL.xlsx` - All new Product Ad rows
+- `Add_SKU_TEST.xlsx` - Single campaign for safe testing
+
+### Important
+
+- **Download an unfiltered bulk sheet** — if you filter by impressions or other metrics, campaigns without activity won't be included and will be missed.
+- Like the migration script, this only creates new ads — it never modifies or deletes existing ones.
+
+---
 
 ## Built With
 
